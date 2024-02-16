@@ -58,7 +58,9 @@ void *mymalloc(size_t n, char *file, int line) {
     int i = 0;
     while(i < 4095){
         header read = readheader(i); //read current header
-        printf("heap[%d]: %p\n", i, &heap[i]);
+        
+        //DELETE LATER, each header jump
+        //printf("heap[%d]: %p\n", i, &heap[i]);
 
         //delete later, if the read header is not a header
         if(heap[0] == 0 && heap[1] == 0){
@@ -70,12 +72,18 @@ void *mymalloc(size_t n, char *file, int line) {
             if(read.size - pl_size >= 16){ // if there is enough space for another chunk to exist after this chunk (16 bytes)
                 header rest = {read.size - pl_size - headersize, 0};
                 writeheader(i + headersize + pl_size, rest); //create a new header for the free space after current chunk
+                
+                //DELETE LATER, returns last header size
+                //printf("second: %d\n", readheader(i + headersize + pl_size).size);
 
                 read.size = pl_size;
             }
             
             read.alloc_stat = 1; //allocate current chunk
             writeheader(i, read);
+
+            //DELETE LATER
+            printf("Chunk created at address: %p\n", &heap[i + headersize]);
 
             return &heap[i + headersize]; //return payload pointer
 

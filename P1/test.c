@@ -3,8 +3,6 @@
 #include "mymalloc.h"
 
 int main(){
-    printf("%p\n", malloc(8));
-
-    printf("%p\n", malloc(8));
+    for(int i = 0; i < 3; i++) malloc(8);
 
 }
