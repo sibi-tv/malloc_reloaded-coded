@@ -7,6 +7,6 @@ void myfree(void *ptr, char *file, int line);
 #define free(p) myfree(p, __FILE__, __LINE_)
 
 struct {
-    unsigned int size; // The size is header size (8 bytes) + payload size (requested n bytes)
+    unsigned int size; // Equals the requested size + closest 8
     short alloc_stat;
-} typedef chunk;
+} typedef header;
