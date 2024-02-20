@@ -110,10 +110,8 @@ void *mymalloc(size_t n, char *file, int line) {
         
     }
 
-
-    // Properly
     //no space to allocate - send error
-    printf("dang it, no space\n"); //change later
+    printf("ERROR --> malloc: not enough storage to satisfy requested byte count (%s:%d)\n", file, line); //change later
 
     return NULL;
     
@@ -123,12 +121,16 @@ void myfree(void *ptr, char *file, int line) { // free takes
     
     header free_header;
     int free_header_index = 0;
-    for (int i = 0; i < 4096; i++) {
+    for (int i = 0; i < 4096; i++) { // change this to 4088?
         if ((char*)ptr == &heap[i]) {
             //printf("booyah\n");
             free_header_index = i-8;
             free_header = readheader(free_header_index);
         }
+    }
+
+    if (free_header == NULL) {//doesn't work
+        printf(":D\n");
     }
 
 
@@ -201,7 +203,7 @@ void myfree(void *ptr, char *file, int line) { // free takes
 /**
  * 
  * Runtime errors:
- * 1. (Malloc error) Out of memory --> 114
+ * 1. (Malloc error) Out of memory --> 114 (DONE)
  * 2. (Free error) Freeing a bad pointer --> 135
  * 
  * 

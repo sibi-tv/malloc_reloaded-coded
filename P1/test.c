@@ -8,10 +8,15 @@ void println() {
 
 int main(){
 
+    char *p = malloc(4088);
+    free(p);
+    free(p);
+    return 1;
 
     // Test 0: Test if any freeing works
     int *ptr1 = malloc(199); //208
     int *ptr2 = malloc(16); //24
+    
     free(ptr2);
     println();
 
