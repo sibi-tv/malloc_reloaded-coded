@@ -110,6 +110,8 @@ void *mymalloc(size_t n, char *file, int line) {
         
     }
 
+
+    // Properly
     //no space to allocate - send error
     printf("dang it, no space\n"); //change later
 
@@ -128,6 +130,9 @@ void myfree(void *ptr, char *file, int line) { // free takes
             free_header = readheader(free_header_index);
         }
     }
+
+
+    // free errors
 
     // Show that we retrieve the correct header from the ting
     //printf("%d\n", free_header_index);
@@ -194,7 +199,58 @@ void myfree(void *ptr, char *file, int line) { // free takes
 }
 
 /**
- * 1. Do free (minus error print statements)
- * 2. Makefile
- * 3. Memtest? //not finishing but doing AMAP before 9
+ * 
+ * Runtime errors:
+ * 1. (Malloc error) Out of memory --> 114
+ * 2. (Free error) Freeing a bad pointer --> 135
+ * 
+ * 
+ * Coming up with testing strategy
+ * 1. What requirements do we have?
+ * - Library must detect and report runtime errors
+ * - mymalloc should allocate memory on our heap array
+ * - myfree should free memory on our heap array
+ * - mymalloc should align all allocated memory (5 --> 8), (11 --> 16)
+ * - myfree should coalesce when necessary
+ * 
+ * 2. How do we know if these requirements were violated
+ * - Proper error messages aren't printed
+ * - If we allocate 4088 bytes and then try to malloc() again and are able to allocate more memory
+ * - If we are not able to malloc again on a chunk we just freed
+ * - Malloc does not allot memory divisible by 8
+ * - When checking the header, we do not get the coalecsed size
+ * 
+ * 3. Write specific test cases
+ * - Combine bullet points 1 & 2 into 1 test case: Test to see if a) malloc works b) if we get the proper runtime error (return null) --> malloc(4088) malloc(100) --> 2nd malloc should return NULL with error message
+ * - Malloc 2 chunks, free 1 of the chunks, malloc into that chunk again --> returning success
+ * - White-Box Test: Call malloc(n) where n is some number not divisible by 8. Add a method in mymalloc.c to spit out chunk size and use it in memtest to see if it equals n + 8 - (n%8).
+ * - White-Box Test: In memtest, make 2 adjacent pointers & store the value p1.size + p2.size + 8 in a variable. Call free(*p1), then Call free(*p2). Add method to mymalloc.c to return 1 if 4088 bytes are free and 0 otherwise
+ * --> Use test cases we already made in test.c
+ * 
+ * Memgrind:
+ * 
+ * 1. malloc() and immediately free() a 1-byte object, 120 times.
+ * 2. Use malloc() to get 120 1-byte objects, storing the pointers in an array, then use free() to deallocate the chunks.
+ * 3. Create an array of 120 pointers. Repeatedly make a random choice between allocating a 1-byte object and adding the pointer to the array and deallocating a previously allocated object (if any), 
+ *    until you have allocated 120 times. Deallocate any remaining objects.
+ * - Keep a count of how many tings have been allocated by malloc
+ * - If count == 0 and you get a free --> let the error happen
+ * - If count == n, where n != 0 and you get a free --> free(arr[n-1])
+ * - Free any remaining ptrs
+ * 4. Allot 120 chunks to memory, free 120 at random, then free the rest.
+ * 5. Allot 120 chunks to memory, free every other ting, then randomly free the rest
+ * 
+ * Makefile: Kareem
+ * 
+ * If *ptr does not exist within memory 
+ * 
+ * 
+ * Additional readme info:
+ * - Names + NetIDs
+ * - Implementation (Design notes)
+ * - Make file description?
+ * - Contents of memtest
+ * - Contents of memgrind
+ * - poem professing love to rahulraj
+ * 
 */
