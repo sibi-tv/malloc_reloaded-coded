@@ -20,7 +20,7 @@ void printtheheader(){
 }
 
 void printheader(header h){
-    printf("data: %d, %d\n", h.size, h.alloc_stat);
+    printf("data: %d, %d, %p\n", h.size, h.alloc_stat, &h);
 }
 
 header readheader(int i){
@@ -29,6 +29,19 @@ header readheader(int i){
         ((char *) &ret)[j - i] = heap[j];
     }
     return ret;
+}
+
+int get_payload_size(void *ptr) {
+    int index = 0;
+    void *hptr = ptr-8;
+    for (int i = 0; i < 4096; i++) { // change this to 4088?
+        if ((char*)hptr == &heap[i]) {
+            index = i;
+            i = 5000;
+        }
+    }
+    header homie = readheader(index);
+    return homie.size;
 }
 
 void writeheader(int i, header insert){
@@ -61,6 +74,11 @@ void freepayload (int index) { // index of header, that has the payload info
 // pointer returned by malloc must to the first byte of the payload
 
 void *mymalloc(size_t n, char *file, int line) { 
+
+    if(n < 1){ //if header not found in memory
+        printf("\n* MEMORY ERROR * --> invalid input: value cannot be less than 1 (%s:%d)\n\n", file, line);
+        return NULL;
+    }
 
     //checks if the first header exists
     if(heap[0] == 0 && heap[1] == 0){
@@ -99,8 +117,8 @@ void *mymalloc(size_t n, char *file, int line) {
             read.alloc_stat = 1; //allocate current chunk
             writeheader(i, read);
 
-            //DELETE LATER
-            printf("Chunk created at address: %p\n", &heap[i + headersize]);
+            //DELETE LATER *********************************************************************************************************
+            //printf("Chunk created at address: %p\n", &heap[i + headersize]);
 
             return &heap[i + headersize]; //return payload pointer
 
@@ -111,7 +129,7 @@ void *mymalloc(size_t n, char *file, int line) {
     }
 
     //no space to allocate - send error
-    printf("ERROR --> malloc: not enough storage to satisfy requested byte count (%s:%d)\n", file, line); //change later
+    printf("\n* MEMORY ERROR * --> malloc: not enough storage to satisfy requested byte count (%s:%d)\n\n", file, line); //change later
 
     return NULL;
     
@@ -121,18 +139,26 @@ void myfree(void *ptr, char *file, int line) { // free takes
     
     header free_header;
     int free_header_index = 0;
-    for (int i = 0; i < 4096; i++) { // change this to 4088?
+
+    int i = 0;
+    for (; i < 4096; i++) { // change this to 4088?
         if ((char*)ptr == &heap[i]) {
             //printf("booyah\n");
             free_header_index = i-8;
             free_header = readheader(free_header_index);
+            i = 5000;
         }
     }
 
-    if (free_header == NULL) {//doesn't work
-        printf(":D\n");
-    }
+    //printheader(free_header);
 
+    if(i != 5001){ //if header not found in memory
+        printf("\n* MEMORY ERROR * --> invalid free: header not found in memory (%s:%d)\n\n", file, line);
+        return;
+    }else if(free_header.alloc_stat == 0){
+        printf("\n* MEMORY ERROR * --> free: payload has already been deallocated/has never been allocated before/invalid payload pointer (%s:%d)\n\n", file, line);
+        return;
+    }
 
     // free errors
 
@@ -155,9 +181,9 @@ void myfree(void *ptr, char *file, int line) { // free takes
             prev_header_index -= 8;
         } 
 
-        printf("%d\n", prev_header_index);
+        //printf("%d\n", prev_header_index);
         header prev_header = readheader(prev_header_index);
-        printf("%d\n", prev_header.alloc_stat);
+        //printf("%d\n", prev_header.alloc_stat);
         if (prev_header.alloc_stat == 0) { // if "left header is free"
             prev_header.size += free_header.size + headersize;
             writeheader(prev_header_index, prev_header);
@@ -175,7 +201,7 @@ void myfree(void *ptr, char *file, int line) { // free takes
         freepayload(free_header_index);
     }
 
-    printf("%d\n", free_header_index);
+    //printf("%d\n", free_header_index);
     int next_header_index = free_header_index + free_header.size + headersize;
     if (next_header_index < 4096) {
         header next_header = readheader(next_header_index);
@@ -195,10 +221,12 @@ void myfree(void *ptr, char *file, int line) { // free takes
     free_header.alloc_stat = 0;
     writeheader(free_header_index, free_header);
 
-    printheader(free_header);
+    //printheader(readheader(0));
 
     return;
 }
+
+
 
 /**
  * 
@@ -229,7 +257,7 @@ void myfree(void *ptr, char *file, int line) { // free takes
  * - White-Box Test: In memtest, make 2 adjacent pointers & store the value p1.size + p2.size + 8 in a variable. Call free(*p1), then Call free(*p2). Add method to mymalloc.c to return 1 if 4088 bytes are free and 0 otherwise
  * --> Use test cases we already made in test.c
  * 
- * Memgrind:
+ * Memgrind: YOOOOOOOOOOOOOOOOOOOO
  * 
  * 1. malloc() and immediately free() a 1-byte object, 120 times.
  * 2. Use malloc() to get 120 1-byte objects, storing the pointers in an array, then use free() to deallocate the chunks.
@@ -239,8 +267,8 @@ void myfree(void *ptr, char *file, int line) { // free takes
  * - If count == 0 and you get a free --> let the error happen
  * - If count == n, where n != 0 and you get a free --> free(arr[n-1])
  * - Free any remaining ptrs
- * 4. Allot 120 chunks to memory, free 120 at random, then free the rest.
- * 5. Allot 120 chunks to memory, free every other ting, then randomly free the rest
+ * 4. Malloc 120 times, free 60 times, malloc 240 times, free 300 times;
+ * 5. Malloc 256 times, free even indices, free odd indices
  * 
  * Makefile: Kareem
  * 
@@ -256,3 +284,8 @@ void myfree(void *ptr, char *file, int line) { // free takes
  * - poem professing love to rahulraj
  * 
 */
+
+/** Tests 2 things
+     * 1. Does malloc work
+     * 2. Does malloc properly catch runtime errors (i.e. using more memory than available)
+     */
