@@ -94,56 +94,61 @@ int main(int argc, char *argv[]){
     if(argv[1] == NULL){
         printf("INVALID INPUT\n");
         return 1;
-    }else if((*argv[1] - '0') > 7){
+    }else if((*argv[1] - '0') > 5){
         printf("INVALID INPUT\n");
         return 1;
     }
 
     //Make before and after time
     struct timeval before, after;
+    double time_elapsed;
 
     switch(*argv[1] - '0'){
         case 1:
-            gettimeofday(&before, NULL);
             for(int i = 0; i < 50; i++){
+                gettimeofday(&before, NULL);
                 immediate_1();
+                gettimeofday(&after, NULL);
+                time_elapsed += (double) (after.tv_usec - before.tv_usec)/1000000;
             }
-            gettimeofday(&after, NULL);
             break;
         case 2:
-            gettimeofday(&before, NULL);
             for(int i = 0; i < 50; i++){
+                gettimeofday(&before, NULL);
                 arrayDeallocate_2();
+                gettimeofday(&after, NULL);
+                time_elapsed += (double) (after.tv_usec - before.tv_usec)/1000000;
             }
-            gettimeofday(&after, NULL);
             break;
         case 3:
-            gettimeofday(&before, NULL);
             for(int i = 0; i < 50; i++){
+                gettimeofday(&before, NULL);
                 allocDeallocRandom_3();
+                gettimeofday(&after, NULL);
+                time_elapsed += (double) (after.tv_usec - before.tv_usec)/1000000;
             }
-            gettimeofday(&after, NULL);
             break;
         case 4:
-            gettimeofday(&before, NULL);
             for(int i = 0; i < 50; i++){
+                gettimeofday(&before, NULL);
                 seriesOfAllocDealloc_4();
+                gettimeofday(&after, NULL);
+                time_elapsed += (double) (after.tv_usec - before.tv_usec)/1000000;
             }
-            gettimeofday(&after, NULL);
             break;
         case 5:
-            gettimeofday(&before, NULL);
             for(int i = 0; i < 50; i++){
+                gettimeofday(&before, NULL);
                 freeEvenFreeOdd_5();
+                gettimeofday(&after, NULL);
+                time_elapsed += (double) (after.tv_usec - before.tv_usec)/1000000;
             }
-            gettimeofday(&after, NULL);
             break;
             
     }
 
     //print output difference
-    printf("Time elapsed: %ld\n", (after.tv_sec - before.tv_sec) * 1000000 + after.tv_usec - before.tv_usec);
-    //printf("%ld, %ld, %ld\n", before.tv_sec, after.tv_sec, (after.tv_sec - before.tv_sec) * 1000000 + after.tv_usec - before.tv_usec);
+    printf("Time elapsed: %f seconds\n", time_elapsed/50);
 
     return 0;
 }

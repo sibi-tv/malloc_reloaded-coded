@@ -108,9 +108,14 @@ void case8() { // free should call run time error if freeing an unmalloced objec
 void case9() {
     char *ptr = malloc(8);
     free(ptr+1);
+    printf("Test 9 is CORRECT if there is a *MEMORY ERROR* message above. It is incorrect if it is absent.\n");
 }
 
 int main(int argc, char *argv[]){
+
+    if(*argv[1] - '0' > 9 || *argv[1] - '0' < 1){
+        printf("* INVALID INPUT *\n");
+    }
 
     switch(*argv[1] - '0') {
         case 1:
@@ -143,7 +148,6 @@ int main(int argc, char *argv[]){
         
     }
     
-    return 6;
-    
+    return 0;
 
 }
